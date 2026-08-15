@@ -1,0 +1,387 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#f7f7f5" />
+  <title>Mis pastillas</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <style>
+    :root{
+      --bg:#f7f7f5;
+      --card:#ffffff;
+      --text:#1f2933;
+      --muted:#6b7280;
+      --border:#e5e7eb;
+      --ok:#1f8f5f;
+      --ok-soft:#e9f6ef;
+      --danger:#b84747;
+      --shadow:0 10px 30px rgba(31,41,51,.08);
+      --radius:22px;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      min-height:100vh;
+      font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+      color:var(--text);
+      background:var(--bg);
+    }
+    .wrap{
+      width:min(680px,100%);
+      margin:0 auto;
+      padding:24px 18px 48px;
+    }
+    header{padding:10px 4px 20px}
+    h1{font-size:30px;line-height:1.1;margin:0 0 6px}
+    .subtitle{color:var(--muted);font-size:15px;margin:0}
+    .card{
+      background:var(--card);
+      border:1px solid var(--border);
+      border-radius:var(--radius);
+      box-shadow:var(--shadow);
+      padding:22px;
+      margin-bottom:16px;
+    }
+    .today-date{
+      color:var(--muted);
+      font-size:14px;
+      text-transform:capitalize;
+      margin-bottom:8px;
+    }
+    .today-status{
+      font-size:22px;
+      font-weight:700;
+      margin:0 0 18px;
+    }
+    .taken{color:var(--ok)}
+    .btn{
+      width:100%;
+      border:0;
+      border-radius:16px;
+      padding:16px 18px;
+      font-size:17px;
+      font-weight:700;
+      cursor:pointer;
+      transition:.15s ease;
+    }
+    .btn:active{transform:scale(.99)}
+    .btn-primary{background:var(--text);color:#fff}
+    .btn-ok{background:var(--ok-soft);color:var(--ok)}
+    .mini{
+      margin-top:12px;
+      border:0;
+      background:transparent;
+      color:var(--muted);
+      text-decoration:underline;
+      cursor:pointer;
+      font-size:14px;
+    }
+    .section-title{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      margin-bottom:14px;
+    }
+    .section-title h2{font-size:18px;margin:0}
+    select{
+      border:1px solid var(--border);
+      border-radius:12px;
+      background:#fff;
+      padding:8px 10px;
+      font-size:14px;
+    }
+    .weekdays,.calendar{
+      display:grid;
+      grid-template-columns:repeat(7,1fr);
+      gap:7px;
+    }
+    .weekday{
+      text-align:center;
+      font-size:12px;
+      color:var(--muted);
+      padding:4px 0;
+    }
+    .day{
+      aspect-ratio:1;
+      border:1px solid var(--border);
+      border-radius:12px;
+      background:#fff;
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      justify-content:center;
+      gap:3px;
+      font-size:14px;
+      cursor:default;
+      user-select:none;
+      position:relative;
+    }
+    .day.empty{visibility:hidden}
+    .day.future{opacity:.38}
+    .day.taken-day{
+      background:var(--ok-soft);
+      border-color:#b7dfc9;
+      color:var(--ok);
+      font-weight:700;
+    }
+    .dot{
+      width:6px;height:6px;border-radius:50%;
+      background:var(--ok);
+    }
+    .legend{
+      margin-top:14px;
+      color:var(--muted);
+      font-size:13px;
+      line-height:1.5;
+    }
+    .history-actions{
+      display:flex;
+      gap:8px;
+      margin-top:14px;
+    }
+    .edit-banner{
+      margin-top:12px;
+      padding:11px 12px;
+      border:1px solid #f0d7a3;
+      background:#fff8e8;
+      border-radius:12px;
+      font-size:13px;
+      line-height:1.45;
+    }
+    .day.readonly{cursor:default}
+    .day.editable{
+      cursor:pointer;
+      outline:2px solid transparent;
+    }
+    .day.editable:hover{outline-color:#d1d5db}
+    .stats{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:10px;
+      margin-top:16px;
+    }
+    .stat{
+      border:1px solid var(--border);
+      border-radius:14px;
+      padding:13px;
+      background:#fafafa;
+    }
+    .stat strong{display:block;font-size:22px}
+    .stat span{font-size:12px;color:var(--muted)}
+    .settings-row{
+      display:flex;
+      gap:8px;
+      margin-top:12px;
+    }
+    input[type="text"]{
+      flex:1;
+      min-width:0;
+      border:1px solid var(--border);
+      border-radius:12px;
+      padding:12px;
+      font-size:15px;
+    }
+    .small-btn{
+      border:1px solid var(--border);
+      border-radius:12px;
+      background:#fff;
+      padding:10px 13px;
+      cursor:pointer;
+      font-weight:600;
+    }
+    footer{
+      color:var(--muted);
+      font-size:12px;
+      line-height:1.55;
+      padding:4px 6px;
+    }
+    .danger{color:var(--danger)}
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <header>
+      <h1 id="appTitle">Mis pastillas</h1>
+      <p class="subtitle">Un registro sencillo para saber si ya las has tomado hoy.</p>
+    </header>
+
+    <section class="card">
+      <div class="today-date" id="todayDate"></div>
+      <p class="today-status" id="todayStatus">Aún no consta como tomada.</p>
+      <button class="btn btn-primary" id="toggleToday">Marcar como tomada hoy</button>
+      <button class="mini" id="undoToday" hidden>Desmarcar hoy</button>
+    </section>
+
+    <section class="card">
+      <div class="section-title">
+        <h2>Historial</h2>
+        <select id="monthSelect" aria-label="Mes"></select>
+      </div>
+      <div class="weekdays">
+        <div class="weekday">L</div><div class="weekday">M</div><div class="weekday">X</div>
+        <div class="weekday">J</div><div class="weekday">V</div><div class="weekday">S</div><div class="weekday">D</div>
+      </div>
+      <div class="calendar" id="calendar"></div>
+      <div class="stats">
+        <div class="stat"><strong id="takenCount">0</strong><span>días marcados este mes</span></div>
+        <div class="stat"><strong id="monthDays">0</strong><span>días transcurridos este mes</span></div>
+      </div>
+      <div class="legend">El calendario es solo de consulta. Los días marcados indican que la pastilla quedó registrada como tomada.</div>
+    </section>
+
+    <section class="card">
+      <div class="section-title"><h2>Nombre</h2></div>
+      <div class="settings-row">
+        <input id="nameInput" type="text" maxlength="40" placeholder="Ej.: Pastilla diaria" />
+        <button class="small-btn" id="saveName">Guardar</button>
+      </div>
+    </section>
+
+    <footer>
+      Los registros se guardan únicamente en este navegador mediante almacenamiento local.
+      Si borras los datos del navegador o cambias de dispositivo, el historial no se trasladará automáticamente.
+    </footer>
+  </main>
+
+<script>
+(() => {
+  const STORAGE_KEY = "pastillas-registro-v1";
+  const NAME_KEY = "pastillas-nombre-v1";
+  const fmtKey = d => {
+    const y=d.getFullYear(), m=String(d.getMonth()+1).padStart(2,'0'), day=String(d.getDate()).padStart(2,'0');
+    return `${y}-${m}-${day}`;
+  };
+  const startOfDay = d => new Date(d.getFullYear(), d.getMonth(), d.getDate());
+  const today = () => startOfDay(new Date());
+
+  function load(){
+    try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || {}; }
+    catch { return {}; }
+  }
+  function save(data){ localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); }
+
+  let data = load();
+  let selectedMonth = new Date(today().getFullYear(), today().getMonth(), 1);
+
+  const els = {
+    todayDate: document.getElementById("todayDate"),
+    todayStatus: document.getElementById("todayStatus"),
+    toggleToday: document.getElementById("toggleToday"),
+    undoToday: document.getElementById("undoToday"),
+    calendar: document.getElementById("calendar"),
+    monthSelect: document.getElementById("monthSelect"),
+    takenCount: document.getElementById("takenCount"),
+    monthDays: document.getElementById("monthDays"),
+    nameInput: document.getElementById("nameInput"),
+    saveName: document.getElementById("saveName"),
+    appTitle: document.getElementById("appTitle"),
+    editHistory: document.getElementById("editHistory"),
+    editBanner: document.getElementById("editBanner")
+  };
+
+  let editMode = false;
+
+  function renderToday(){
+    const d = today();
+    const key = fmtKey(d);
+    els.todayDate.textContent = d.toLocaleDateString("es-ES",{weekday:"long",day:"numeric",month:"long",year:"numeric"});
+    const isTaken = !!data[key];
+    els.todayStatus.textContent = isTaken ? "✓ Ya consta como tomada hoy." : "Aún no consta como tomada.";
+    els.todayStatus.classList.toggle("taken", isTaken);
+    els.toggleToday.textContent = isTaken ? "Tomada hoy ✓" : "Marcar como tomada hoy";
+    els.toggleToday.className = "btn " + (isTaken ? "btn-ok" : "btn-primary");
+    els.undoToday.hidden = !isTaken;
+  }
+
+  function buildMonthSelect(){
+    els.monthSelect.innerHTML = "";
+    const now = today();
+    for(let i=0;i<18;i++){
+      const d = new Date(now.getFullYear(), now.getMonth()-i, 1);
+      const opt = document.createElement("option");
+      opt.value = `${d.getFullYear()}-${d.getMonth()}`;
+      opt.textContent = d.toLocaleDateString("es-ES",{month:"long",year:"numeric"});
+      if(d.getFullYear()===selectedMonth.getFullYear() && d.getMonth()===selectedMonth.getMonth()) opt.selected=true;
+      els.monthSelect.appendChild(opt);
+    }
+  }
+
+  function renderCalendar(){
+    els.calendar.innerHTML = "";
+    const y=selectedMonth.getFullYear(), m=selectedMonth.getMonth();
+    const first = new Date(y,m,1);
+    const daysInMonth = new Date(y,m+1,0).getDate();
+    const mondayIndex = (first.getDay()+6)%7;
+    for(let i=0;i<mondayIndex;i++){
+      const blank=document.createElement("div"); blank.className="day empty"; els.calendar.appendChild(blank);
+    }
+    const now=today();
+    let count=0, elapsed=0;
+    for(let day=1;day<=daysInMonth;day++){
+      const d=new Date(y,m,day);
+      const key=fmtKey(d);
+      const future=d>now;
+      if(!future) elapsed++;
+      if(data[key]) count++;
+      const cell=document.createElement("button");
+      cell.type="button";
+      cell.className="day" + (data[key] ? " taken-day" : "") + (future ? " future" : "");
+      cell.innerHTML=`<span>${day}</span>${data[key] ? '<span class="dot"></span>' : ''}`;
+      cell.disabled = true;
+      els.calendar.appendChild(cell);
+    }
+    els.takenCount.textContent=count;
+    els.monthDays.textContent=elapsed;
+  }
+
+  function renderName(){
+    const name=localStorage.getItem(NAME_KEY) || "";
+    els.nameInput.value=name;
+    els.appTitle.textContent=name || "Mis pastillas";
+  }
+
+  function renderEditMode(){
+    els.editHistory.textContent = editMode ? "Finalizar edición" : "Editar historial";
+    els.editBanner.hidden = !editMode;
+  }
+
+  function renderAll(){
+    renderToday();
+    buildMonthSelect();
+    renderCalendar();
+    renderName();
+    renderEditMode();
+  }
+
+  els.toggleToday.addEventListener("click",()=>{
+    const key=fmtKey(today());
+    data[key]=true; save(data); renderAll();
+  });
+  els.undoToday.addEventListener("click",()=>{
+    delete data[fmtKey(today())]; save(data); renderAll();
+  });
+  els.monthSelect.addEventListener("change",(e)=>{
+    const [y,m]=e.target.value.split("-").map(Number);
+    selectedMonth=new Date(y,m,1);
+    renderCalendar();
+  });
+  els.saveName.addEventListener("click",()=>{
+    localStorage.setItem(NAME_KEY, els.nameInput.value.trim());
+    renderName();
+  });
+
+  els.editHistory.addEventListener("click",()=>{
+    editMode = !editMode;
+    renderAll();
+  });
+
+  if("serviceWorker" in navigator){
+    window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js").catch(()=>{}));
+  }
+  renderAll();
+})();
+</script>
+</body>
+</html>
